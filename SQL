@@ -145,6 +145,35 @@ ORDER BY DATETIME
 아이디, 종, 이름을 아이디순으로 조회
 중성화 O = Spayed , Neutered 
 중성화 X = Intact
+SELECT ANIMAL_ID, ANIMAL_TYPE, NAME FROM ANIMAL_OUTS
+WHERE ANIMAL_ID IN (SELECT ANIMAL_ID FROM ANIMAL_INS WHERE SEX_UPON_INTAKE  LIKE '%Intact%')
+AND SEX_UPON_OUTCOME NOT LIKE '%Intact%'
+ORDER BY ANIMAL_ID
 
+23. 루시와 엘라 찾기
+ANIMAL_INS 에서 이름이 Lucy, Ella, Pickle, Rogan, Sabrina, Mitty인
+동물의 아이디와 이름, 성별 및 중성화 여부를 조회
+아이디순으로
+SELECT ANIMAL_ID, NAME, SEX_UPON_INTAKE FROM ANIMAL_INS
+WHERE NAME IN ('Lucy', 'Ella', 'Pickle', 'Rogan', 'Sabrina', 'Mitty')
+AND SEX_UPON_INTAKE NOT LIKE '%Intact%'
+ORDER BY ANIMAL_ID
+
+24. 이름에 el이 들어가는 동물 찾기
+개를 찾는데 이름에 'el'이 들어갑니다.
+대소문자 구분없이 'el' 이라는 이름을 찾고 이름순으로 조회
+SELECT ANIMAL_ID, NAME FROM ANIMAL_INS
+WHERE UPPER(NAME) LIKE UPPER('%el%')
+AND ANIMAL_TYPE ='Dog'
+ORDER BY NAME
+
+25. 중성화 여부 파악하기
+ANIMAL_INS 테이블 SEX_UPON_INTAKE 중성화된 동물은 'Neutered' 또는 'Spayed'
+동물의 아이디와 이름, 중성화 여부를 아이디 순으로 조회. 중성화 됬으면 O 아니면 X 로 표시
+/* REGEXP_LIKE , DECODE , NVL  */
+SELECT ANIMAL_ID, NAME,
+DECODE(SUBSTR(SEX_UPON_INTAKE,0,3),'Neu','O','Spa','O','X') as 중성화
+FROM ANIMAL_INS
+ORDER BY ANIMAL_ID
 
 
