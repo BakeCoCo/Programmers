@@ -1,0 +1,150 @@
+
+ANIMAL_INS는 동물 보호소에 들어온 동물의 정보를 담은 테이블입니다.
+ANIMAL_INS의 테이블 구조는 다음과 같으며
+ANIMAL_ID, ANIMAL_TYPE, DATETIME, INTAKE_CONDITION, NAME, SEX_UPON_INTAKE는 각자
+동물의아이디, 생물 종 , 보호 시작일, 보호 시작 시 상태, 이름, 성별 및 중성화 여부를 나타냅니다.
+
+1. ANIMAL_INS 테이블에서 동물의 아이디 순으로 모두 조회하세요.
+SELECT * FROM ANIMAL_INS ORDER BY ANIMAL_ID ASC
+
+2. ANIMAL_INS 테이블에서 동물의 아이디를 역순으로 이름과 보호 시작일을 조회하세요.
+SELECT NAME,DATETIME FROM ANIMAL_INS ORDER BY ANIMAL_ID DESC
+
+3. ANIMAL_INS 테이블에서 아픈 동물의 아이디와 이름을 조회하세요
+상태값 = Normal, Sick, Aged
+SELECT ANIMAL_ID, NAME FROM ANIMAL_INS WHERE INTAKE_CONDITION = 'Sick'
+
+4. ANIMAL_INS 테이블에서 젊은동물의 아이디와 이름을 조회하는 SQL 작성
+젊은동물 = > INTAKE_CONDITION != 'Aged'
+SELECT ANIMAL_ID, NAME FROM ANIMAL_INS WHERE INTAKE_CONDITION != 'Aged'
+
+5. 동물 보호소에 들어온 모든 동물의 아이디와 이름을 ANIMAL_ID순으로 조회
+SELECT ANIMAL_ID, NAME FROM ANIMAL_INS ORDER BY ANIMAL_ID
+
+6. 동물 보호소에 들어온 모든 동물의 아이디와 이름, 보호 시작일을 이름 순으로 조회
+단, 이름이 같은 동물 중에서는 보호를 나중에 시작한 동물을 먼저 보여줘야함.
+SELECT ANIMAL_ID, NAME, DATETIME FROM ANIMAL_INS ORDER BY NAME, DATETIME DESC
+
+7. 동물 보호소에 가장 먼저 들어온 동물의 이름을 조회
+SELECT NAME FROM ANIMAL_INS ORDER BY DATETIME LIMIT 1 (MYSQL)
+SELECT NAME FROM (SELECT NAME,DATETIME FROM ANIMAL_INS ORDER BY DATETIME) WHERE ROWNUM=1 (ORACLE)
+
+8. 가장 최근에 들어온 동물은 언제 들어왔는지 조회
+SELECT * FROM
+(SELECT DATETIME FROM ANIMAL_INS ORDER BY DATETIME DESC) WHERE ROWNUM=1 (ORACLE)
+
+9. 동물 보호소에 가장 먼저 들어온 동물은 언제 들어왔는지 조회
+SELECT * FROM
+(SELECT DATETIME FROM ANIMAL_INS ORDER BY DATETIME) WHERE ROWNUM=1
+
+10. 동물 보호소에 동물이 몇마리인지 조회
+SELECT COUNT(*) FROM ANIMAL_INS
+
+11. 동물 보호소에 들어온 동물의 이름은 몇 개인지 조회 이름이 NULL인 경우 집계하지 않고 중복되는 이름은 1개로침
+SELECT COUNT(*) FROM(SELECT DISTINCT NAME FROM ANIMAL_INS WHERE NAME IS NOT NULL)
+
+12. 동물 보호소에 들어온 동물 중 고양이와 개가 각각 몇 마리인지 조회하는 SQL(고양이가 우선)
+SELECT DISTINCT (ANIMAL_TYPE) ,COUNT(ANIMAL_TYPE) FROM ANIMAL_INS GROUP BY ANIMAL_TYPE ORDER BY ANIMAL_TYPE
+
+13. 동물 보호소에 들어온 동물 이름 중 두 번 이상 쓰인 이름과 해당 이름이 쓰인 횟수를 조회하는 SQL문
+이때 결과는 이름이 없는 동물은 집계에서 제외하며, 결과는 이름 순으로 조회
+SELECT * FROM
+(
+SELECT DISTINCT NAME, COUNT(NAME) CC FROM ANIMAL_INS
+WHERE NAME IS NOT NULL
+GROUP BY NAME
+ORDER BY NAME
+) WHERE CC >=2
+
+14. ANIMAL_OUTS는 동물 보호소에서 입양 보낸 동물의 정보를 담은 테이블입니다.
+테이블구조는 ANIMAL_ID, ANIMAL_TYPE, DATETIME, NAME, SEX_UPON_OUTCOME 입니다.
+
+보호소에서는 몇 시에 입양이 가장 활발하게 일어나는지 알아보려 합니다.
+09:00~19:59까지, 각 시간대별로 입양이 몇 건이나 발생했는지 조회. 이때 결과는 시간대 순으로 정렬
+/* MYSQL 에서는 HOUR라는 함수가있음 */
+SELECT HOUR(DATETIME) AS 'HOUR', COUNT(HOUR(DATETIME)) AS 'COUNT' FROM ANIMAL_OUTS
+GROUP BY HOUR(DATETIME)
+HAVING HOUR >= 9 AND HOUR < 20
+ORDER BY HOUR(DATETIME) ASC
+
+/* ORACLE */
+SELECT HOUR, COUNT(HOUR) FROM(
+SELECT TO_NUMBER(TO_CHAR(DATETIME,'HH24')) HOUR FROM ANIMAL_OUTS
+)WHERE HOUR BETWEEN 9 AND 19
+GROUP BY HOUR
+ORDER BY HOUR
+
+15. 보호소에서는 몇 시에 입양이 가장 활발하게 일어나는지 알아보려 합니다.
+0시부터 23시까지, 각 시간대별로 입양이 몇건이나 발생했는지 조회. 이때 결과는 시간대 순으로 정렬
+(0건인 것도 포함)
+
+SELECT HOUR, MAX(COUNT) FROM(
+SELECT LEVEL AS HOUR, 0 AS COUNT FROM DUAL CONNECT BY LEVEL < 24
+UNION
+SELECT HOUR, COUNT(HOUR) AS COUNT FROM
+(SELECT TO_NUMBER(TO_CHAR(DATETIME,'HH24')) AS HOUR FROM ANIMAL_OUTS) GROUP BY HOUR
+) GROUP BY HOUR
+ORDER BY HOUR
+
+/* 정답이 똑같이 나오는데 이건 틀렷다고 한다. 왜지? */
+SELECT A.HOUR, NVL(B.COUNT,0) FROM
+(SELECT LEVEL AS HOUR, 0 AS COUNT FROM DUAL CONNECT BY LEVEL <24)
+A LEFT OUTER JOIN
+(SELECT HOUR, COUNT(HOUR) AS COUNT FROM
+(SELECT TO_NUMBER(TO_CHAR(DATETIME, 'HH24')) AS HOUR FROM ANIMAL_OUTS) GROUP BY HOUR )
+B ON A.HOUR = B.HOUR
+ORDER BY A.HOUR
+
+16. ANIMAL_INS 에 들어온 동물 중, 이름이 없는 채로 들어온 동물의 ID를 조회
+ID는 오름차순
+SELECT ANIMAL_ID FROM ANIMAL_INS WHERE NAME IS NULL ORDER BY ANIMAL_ID
+
+17. ANIMAL_INS 에 들어온 동물 중 이름이 있는 동물의 ID를 조회
+ID는 오름차순
+SELECT ANIMAL_ID FROM ANIMAL_INS WHERE NAME IS NOT NULL ORDER BY ANIMAL_ID
+
+18. ANIMAL_INS 에 들어온 동물중 입양 게시판에 동물 정보를 게시하려 합니다.
+동물의 생물 종(ANIMAL_TYPE), 성별 및 중성화 여부(SEX_UPON_INTAKE)를 아이디(ANIMAL_ID) 순으로 조회하는 SQL문
+프로그래밍을 모르는 사람들은 NULL이라는 기호를 모르기 때문에, 이름이 없는 동물의 이름은 "No name"으로 표기
+SELECT ANIMAL_TYPE, NVL(NAME,'No name') ,SEX_UPON_INTAKE FROM ANIMAL_INS ORDER BY ANIMAL_ID
+
+19.
+ANIMAL_INS  = 보호소에 들어온   동물의 정보 ANIMAL_ID, ANIMAL_TYPE, DATETIME, INTAKE_CONDITION, NAME, SEX_UPON_INTAKE
+ANIMAL_OUTS = 보호소에 입양보낸 동물의 정보 ANIMAL_ID, ANIMAL_TYPE, DATETIME, NAME, SEX_UPON_OUTCOME
+ANIMAL_OUTS의 ANIMAL_ID는
+ANIMAL_INS의  ANIMAL_ID의 외래 키
+
+천재지변으로 인해 일부 데이터가 유실됨.
+입양간 기록은 있는데 보호소에 들어온 기록이 없는 동물의 ID와 이름을 ID순으로 조회
+
+/* MINUS, LEFT OUTER JOIN, NOT IN */
+SELECT ANIMAL_ID, NAME FROM ANIMAL_OUTS
+WHERE ANIMAL_ID NOT IN(SELECT ANIMAL_ID FROM ANIMAL_INS)
+ORDER BY ANIMAL_ID
+
+20. 관리자의 실수로 일부 동물의 입양일이 잘못 입력되었습니다.
+보호 시작일보다 입양일이 더 빠른 동물의 아이디와 이름을 조회
+보호 시작일이 빠른 순으로 조회
+SELECT A.ANIMAL_ID, A.NAME FROM ANIMAL_INS A, ANIMAL_OUTS B
+WHERE A.ANIMAL_ID = B.ANIMAL_ID
+AND A.DATETIME > B.DATETIME
+ORDER BY A.DATETIME
+
+21. 오랜 기간 보호한 동물
+아직 입양을 못 간 동물 중 가장 오래 보호소에 있었던 동물 3마리의 이름과 보호 시작일을 조회
+보호시작일 순으로 조회
+SELECT * FROM(
+SELECT NAME, DATETIME FROM ANIMAL_INS
+WHERE ANIMAL_ID NOT IN (SELECT ANIMAL_ID FROM ANIMAL_OUTS)
+ORDER BY DATETIME
+) WHERE ROWNUM <=3
+
+22. 보호소에서 중성화한 동물
+보호소에서 중성화 수술을 거친 동물 정보를 알아보려 합니다.
+보호소에 들어올 당시엔 안했지만 나갈땐 중성화된 동물의
+아이디, 종, 이름을 아이디순으로 조회
+중성화 O = Spayed , Neutered 
+중성화 X = Intact
+
+
+
