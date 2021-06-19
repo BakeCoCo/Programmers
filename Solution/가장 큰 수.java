@@ -89,3 +89,50 @@ public class veryBig {
         return ;
     }
 }
+
+
+
+
+import java.util.Arrays;
+import java.util.Comparator;
+/*
+* 다른 사람의 코드
+* Arrays.sort
+* new Comparator<String>
+* String값 두개를 비교 했을때 더 큰 순으로 정렬해주는...
+* 왜 빠른건진 모르겟다.
+*/
+
+public class VeryBigNumber {
+    public static String solution(int[] numbers) {
+        String answer = "";
+        int len = numbers.length;
+        // 1. int형 배열을 String배열로 변환
+        String[] strs = new String[len];
+        for(int i=0;i<len;i++){
+            strs[i] = Integer.toString(numbers[i]);
+        }
+
+        // 2. String 으로 정렬한다. (s1 + s2) , (s2 + s1)를 비교했을때 사전적으로 더 큰 순으로 정렬
+        Arrays.sort(strs, new Comparator<String>() {
+            @Override
+            public int compare(String s1, String s2) {
+                return ((s2+s1).compareTo(s1+s2));
+            }
+        });
+
+        // 2-1. lamda식으로 표현
+        Arrays.sort(strs, (s1, s2) -> (s2+s1).compareTo(s1+s2));
+
+        // 예외케이스
+        // 모두 0 인 경우
+        if("0".equals(strs[0])){
+            return "0";
+        }
+        for(String st : strs){
+            answer += st;
+        }
+        return answer;
+    }
+
+}
