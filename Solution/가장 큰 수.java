@@ -51,3 +51,41 @@ public class veryBig {
         System.out.println(answer);
     }
 }
+
+
+/* 조금 더 빨라지긴 했는데 그래도 시간초과 123 56 */
+
+import java.util.Arrays;
+/*
+ * 정렬 > 가장 큰 수
+ * 입력한 int형 배열의 숫자를 정렬하여 가장 큰수를 뽑아내라
+ *
+ * 1. 입력받은거 앞뒤랑 더해서 2개 비교
+ * 2. 정렬
+ * 3. 끝
+ * 4. 근데 시간초과 
+ * */
+
+public class veryBig {
+    public static void main(String[] args) {
+        String answer = "";
+        int[] numbers = {3,30,32,5,9};
+        int min=0;
+        for(int i = 0; i<numbers.length-1; i++){
+            for(int j=i+1; j<numbers.length; j++){
+                if(Integer.parseInt(numbers[i]+""+numbers[j])<Integer.parseInt(numbers[j]+""+numbers[i])){
+                    min = numbers[j];
+                    numbers[j] = numbers[i];
+                    numbers[i] = min;
+                }
+            }
+        }
+
+        for(Integer k : numbers)
+            answer += k;
+
+        System.out.println(answer);
+
+        return ;
+    }
+}
