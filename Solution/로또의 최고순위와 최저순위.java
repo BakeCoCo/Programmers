@@ -18,26 +18,20 @@ public class programers77484 {
         public int[] solution(int[] lottos, int[] win_nums) {
             int[] answer = new int[2];
             int[] result = {6,6,5,4,3,2,1};
-            int count1 = 0;
-            int count2 = 0;
 
-            Map<Integer,Integer> map1 = new HashMap<>();
-            Map<Integer,Integer> map2 = new HashMap<>();
-
+            int c1 = 0;
+            int c2 = 0;
             for(int i=0; i<lottos.length; i++){
-                if(lottos[i]==0) count1++;
-                map1.put(lottos[i],0);
-                map2.put(win_nums[i],0);
-            }
-            for(int k : map2.keySet()){
-                map2.put(k,map1.getOrDefault(k,-1)+1);
-                if(map2.get(k)>0){
-                    count2++;
+                if(lottos[i]==0) c1++;
+                for(int j=0; j<win_nums.length; j++){
+                    if(lottos[i] == win_nums[j]){
+                        c2++;
+                    }
                 }
             }
 
-            answer[0] = result[count1+count2];
-            answer[1] = result[count2];
+            answer[0] = result[c1+c2];
+            answer[1] = result[c2];
 
             return answer;
         }
